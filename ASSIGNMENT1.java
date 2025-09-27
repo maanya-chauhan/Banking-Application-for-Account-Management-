@@ -16,43 +16,38 @@ class Account {
         this.phoneNumber = phoneNumber;
     }
 
-    // Deposit
     public void deposit(double amount) {
         if (amount > 0) {
             balance += amount;
-            System.out.println("Successfully deposited: " + amount);
+            System.out.println("Deposit successful. Updated balance: " + balance);
         } else {
-            System.out.println("Deposit amount must be positive.");
+            System.out.println("Invalid amount! Deposit must be positive.");
         }
     }
 
-    // Withdraw
     public void withdraw(double amount) {
-        if (amount > 0 && balance >= amount) {
-            balance -= amount;
-            System.out.println("Successfully withdrawn: " + amount);
-        } else if (amount <= 0) {
-            System.out.println("Withdrawal amount must be positive.");
-        } else {
+        if (amount <= 0) {
+            System.out.println("Invalid amount! Withdrawal must be positive.");
+        } else if (amount > balance) {
             System.out.println("Insufficient balance.");
+        } else {
+            balance -= amount;
+            System.out.println("Withdrawal successful. Updated balance: " + balance);
         }
     }
 
-    // Display account details
     public void displayAccountDetails() {
-        System.out.println("Account Number: " + accountNumber);
-        System.out.println("Account Holder: " + accountHolderName);
-        System.out.println("Balance       : " + balance);
-        System.out.println("Email         : " + email);
-        System.out.println("Phone Number  : " + phoneNumber);
-        System.out.println("------------------------------------");
+        System.out.println("Account Number      : " + accountNumber);
+        System.out.println("Account Holder Name : " + accountHolderName);
+        System.out.println("Balance            : " + balance);
+        System.out.println("Email Address      : " + email);
+        System.out.println("Phone Number       : " + phoneNumber);
     }
 
-    // Update contact details
     public void updateContactDetails(String email, String phoneNumber) {
         this.email = email;
         this.phoneNumber = phoneNumber;
-        System.out.println("Contact details updated successfully!");
+        System.out.println("Contact details updated successfully.");
     }
 
     public int getAccountNumber() {
@@ -61,15 +56,20 @@ class Account {
 }
 
 public class BankingApplication {
-    private static Scanner sc = new Scanner(System.in);
-    private static Account[] accounts = new Account[100]; // Max 100 accounts
-    private static int accountCount = 0;
-    private static int nextAccountNumber = 1001; // Auto incrementing account number
+    private final int MAX_ACCOUNTS = 100;
+    private Account[] accounts = new Account[MAX_ACCOUNTS];
+    private int accountCount = 0;
+    private int nextAccountNumber = 1001;
+    private Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
-        int choice;
-        do {
-            System.out.println("\n--- Welcome to the Banking Application ---");
+        BankingApplication app = new BankingApplication();
+        app.mainMenu();
+    }
+
+    public void mainMenu() {
+        while (true) {
+            System.out.println("\nWelcome to the Banking Application!");
             System.out.println("1. Create a new account");
             System.out.println("2. Deposit money");
             System.out.println("3. Withdraw money");
@@ -77,92 +77,121 @@ public class BankingApplication {
             System.out.println("5. Update contact details");
             System.out.println("6. Exit");
             System.out.print("Enter your choice: ");
-            choice = sc.nextInt();
-            sc.nextLine(); // consume newline
+
+            int choice;
+            try {
+                choice = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input! Please enter a number between 1 and 6.");
+                continue;
+            }
 
             switch (choice) {
-                case 1 -> createAccount();
-                case 2 -> performDeposit();
-                case 3 -> performWithdrawal();
-                case 4 -> showAccountDetails();
-                case 5 -> updateContact();
-                case 6 -> System.out.println("Thank you for using the Banking Application!");
-                default -> System.out.println("Invalid choice. Try again!");
+                case 1: createAccount(); break;
+                case 2: performDeposit(); break;
+                case 3: performWithdrawal(); break;
+                case 4: showAccountDetails(); break;
+                case 5: updateContact(); break;
+                case 6: System.out.println("Thank you for using the Banking Application. Goodbye!"); return;
+                default: System.out.println("Invalid choice! Please try again.");
             }
-        } while (choice != 6);
+        }
     }
 
-    // Create account
-    private static void createAccount() {
+    public void createAccount() {
+        if (accountCount >= MAX_ACCOUNTS) {
+            System.out.println("Cannot create more accounts.");
+            return;
+        }
+
         System.out.print("Enter account holder name: ");
-        String name = sc.nextLine();
+        String name = scanner.nextLine();
 
         System.out.print("Enter initial deposit amount: ");
-        double initialDeposit = sc.nextDouble();
-        sc.nextLine();
+        double initialDeposit;
+        try {
+            initialDeposit = Double.parseDouble(scanner.nextLine());
+            if (initialDeposit < 0) {
+                System.out.println("Initial deposit must be non-negative.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid amount. Please enter a valid number.");
+            return;
+        }
 
         System.out.print("Enter email address: ");
-        String email = sc.nextLine();
+        String email = scanner.nextLine();
 
         System.out.print("Enter phone number: ");
-        String phone = sc.nextLine();
+        String phoneNumber = scanner.nextLine();
 
-        accounts[accountCount++] = new Account(nextAccountNumber, name, initialDeposit, email, phone);
+        accounts[accountCount++] = new Account(nextAccountNumber, name, initialDeposit, email, phoneNumber);
         System.out.println("Account created successfully with Account Number: " + nextAccountNumber);
         nextAccountNumber++;
     }
 
-    // Deposit money
-    private static void performDeposit() {
-        Account acc = findAccount();
-        if (acc != null) {
-            System.out.print("Enter deposit amount: ");
-            double amount = sc.nextDouble();
+    public void performDeposit() {
+        Account acc = findAccountByNumber();
+        if (acc == null) return;
+
+        System.out.print("Enter amount to deposit: ");
+        double amount;
+        try {
+            amount = Double.parseDouble(scanner.nextLine());
             acc.deposit(amount);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid amount. Please enter a number.");
         }
     }
 
-    // Withdraw money
-    private static void performWithdrawal() {
-        Account acc = findAccount();
-        if (acc != null) {
-            System.out.print("Enter withdrawal amount: ");
-            double amount = sc.nextDouble();
+    public void performWithdrawal() {
+        Account acc = findAccountByNumber();
+        if (acc == null) return;
+
+        System.out.print("Enter amount to withdraw: ");
+        double amount;
+        try {
+            amount = Double.parseDouble(scanner.nextLine());
             acc.withdraw(amount);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid amount. Please enter a number.");
         }
     }
 
-    // Show account details
-    private static void showAccountDetails() {
-        Account acc = findAccount();
-        if (acc != null) {
-            acc.displayAccountDetails();
-        }
+    public void showAccountDetails() {
+        Account acc = findAccountByNumber();
+        if (acc != null) acc.displayAccountDetails();
     }
 
-    // Update contact details
-    private static void updateContact() {
-        Account acc = findAccount();
-        if (acc != null) {
-            System.out.print("Enter new email: ");
-            String email = sc.nextLine();
-            System.out.print("Enter new phone number: ");
-            String phone = sc.nextLine();
-            acc.updateContactDetails(email, phone);
-        }
+    public void updateContact() {
+        Account acc = findAccountByNumber();
+        if (acc == null) return;
+
+        System.out.print("Enter new email address: ");
+        String email = scanner.nextLine();
+
+        System.out.print("Enter new phone number: ");
+        String phoneNumber = scanner.nextLine();
+
+        acc.updateContactDetails(email, phoneNumber);
     }
 
-    // Helper method to find account
-    private static Account findAccount() {
+    private Account findAccountByNumber() {
         System.out.print("Enter account number: ");
-        int accNo = sc.nextInt();
-        sc.nextLine();
-        for (int i = 0; i < accountCount; i++) {
+        int accNo;
+        try {
+            accNo = Integer.parseInt(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid account number.");
+            return null;
+        }
+        for (int i = 0; i < accountCount; ++i) {
             if (accounts[i].getAccountNumber() == accNo) {
                 return accounts[i];
             }
         }
-        System.out.println("Account not found!");
+        System.out.println("Account not found.");
         return null;
     }
 }
