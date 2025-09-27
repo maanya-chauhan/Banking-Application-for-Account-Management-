@@ -2,26 +2,14 @@
 A simple banking application that allows users to manage bank accounts using Java concepts.   Supports creating accounts, deposit, withdrawal, viewing account details, and updating contact info.   This project demonstrates **Java control structures, arrays, string handling, exception handling, and OOP principles**.
 ---
 ## Features
+-Add student details (roll number, name, course, marks)
 
--Add single or multiple student records.
+-Automatically calculate grade based on marks
 
--Store details including:
+-Display individual and all student records
 
--Roll Number
+-Menu-driven interface for easy interaction
 
--Name
-
--Course
-
--Marks
-
--Grade (calculated automatically)
-
--Display student information in a formatted and readable manner.
-
--Modular design with separate methods for input, grade calculation, and display.
-
--Array-based storage of multiple student records.
 
 ## Technologies Used
 
@@ -61,5 +49,4 @@ The system is menu-driven and allows the user to input as many students as desir
 ---
 ## Notes
 The system uses a fixed-size array. Make sure to specify the maximum number of students at the start.
- 
- Input validation is minimal for simplicity.
+Input validation is minimal for simplicity.
